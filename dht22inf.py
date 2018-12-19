@@ -46,7 +46,6 @@ def parseTags(tags):
 try:
     args = parse_args()
     logging.basicConfig(level=args.loglevel, format=FORMAT)
-    logging.warn(PrettyLog(args.tag))
     extratags = parseTags(args.tag)
     ip = 'No IP'
     if ni.ifaddresses('eth0') and ni.AF_INET in ni.ifaddresses('eth0'):
