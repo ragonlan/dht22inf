@@ -1,5 +1,6 @@
 # dht22inf
-Add metrics to influx from a dht sensor
+Add metrics to influx from a dht22 sensor in Raspberry Pi
+
 ```
 usage: dht22infv2.py [-h] [-v] [--tag [TAG [TAG ...]]]
 
