@@ -2,20 +2,34 @@
 Add metrics to influx from a dht22 sensor in Raspberry Pi
 
 ```
-usage: dht22infv2.py [-h] [-v] [--tag [TAG [TAG ...]]]
+usage: dht22inf.py [-h] [-d] [--tag [TAG [TAG ...]]] --sensor {11,22,2302}
+                   --pin PIN [--influxdatabase INFLUXDATABASE]
+                   [--influxserver INFLUXSERVER] [--loop]
+                   [--frequency FREQUENCY]
 
 Add temperatur and Humidity to influxdb
 
 optional arguments:
   -h, --help            show this help message and exit
-  -v, --verbose         Be verbose
+  -d, --debug           Debug mode with no acction.
   --tag [TAG [TAG ...]]
                         Add this tag to every metric. Syntax tag=value
+  --sensor {11,22,2302}
+                        Sensor type: 11, 23 or 2302
+  --pin PIN             GPIO pin, for example: 4
+  --influxdatabase INFLUXDATABASE
+                        Influx Database to store temperature
+  --influxserver INFLUXSERVER
+                        Influx server hostname
+  --loop                Only excetue forever
+  --frequency FREQUENCY
+                        Temperature/humidity reading frequency
 ```
 
 Example:
 ```
 ./dht22infv2.py -v --tag floor=2  side=east
+./dht22inf.py --sensor 2302 --pin 4 --debug  --loop --tag hola=1 mundo=2 --freq 10
 ```
 
 Output:
