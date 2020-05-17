@@ -28,8 +28,8 @@ optional arguments:
 
 Example:
 ```
-./dht22infv2.py -v --tag floor=2  side=east
-./dht22inf.py --sensor 2302 --pin 4 --debug  --loop --tag hola=1 mundo=2 --freq 10
+./dht22infv2.py  --sensor 2302 --pin 4 -d --tag floor=2  side=east
+./dht22inf.py --sensor 2302 --pin 4 --debug  --loop --tag hello=1 mundo=2 --freq 10
 ```
 
 Output:
