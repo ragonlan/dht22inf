@@ -110,7 +110,13 @@ try:
         }
         if not args.loglevel == logging.DEBUG and not args.json:
             # client.write_points(json_body)
-            write_api.write(bucket=args.influxbucket, record=point)
+            try:
+                write_api.write(bucket=args.influxbucket, record=point)
+            except ReadTimeoutError:
+                print("Error: Timeout while writing to InfluxDB. The server might be overloaded or there might be network issues.")
+            except Exception as e:
+                print(f"An error occurred while writing to InfluxDB: {e}")
+
         if args.json:
             jsondata = json.dumps(point_dict)
             print(jsondata)
