@@ -89,7 +89,7 @@ try:
     while True:
         humi, temp = Adafruit_DHT.read_retry(args.sensor, args.pin)
         logging.debug(
-            'Temp: {:.1f}*C Humity: {:.1f}% IP: {} ExTags: {}'.format(temp, humi, ip, extratags))
+            'Temp: {:.1f}*C Humity: {:.1f}% IP: {} ExTags: {}'.format(temp, humi, ip, args.tags))
 
         point = Point("environmental_measurement")
         point = point.tag("ip", ip).tag("host", socket.gethostname())
