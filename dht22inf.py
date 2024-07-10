@@ -38,7 +38,7 @@ def parse_args():
         help="Debug mode with no acction.",
         action="store_const", dest="loglevel", const=logging.DEBUG, default=logging.WARNING,
     )
-    parser.add_argument('--tag', action='store', default=dict(), nargs='*',
+    parser.add_argument('--tag', action='store', default=dict(), nargs='*', dest=tags,
                         required=False, type=str, help='Add this tag to every metric. Syntax tag=value')
     parser.add_argument('--sensor', required=True, choices=sensor_args.keys(),
                         default=None, help='Sensor type: 11, 23 or 2302')
