@@ -3,7 +3,8 @@
 
 import Adafruit_DHT
 import socket
-from influxdb import InfluxDBClient
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
 from time import sleep
 import netifaces as ni
 import argparse
@@ -43,10 +44,16 @@ def parse_args():
                         default=None, help='Sensor type: 11, 23 or 2302')
     parser.add_argument('--pin', required=True, type=int,
                         help='GPIO pin, for example: 4')
-    parser.add_argument('--influxdatabase', required=False, type=str,
-                        default='temperature', help='Influx Database to store temperature')
+
     parser.add_argument('--influxserver', required=False, type=str,
                         default='localhost', help='Influx server hostname')
+    parser.add_argument('--influxorg', required=False, type=str,
+                        default='temperature', help='Influx organization to store temperature')
+    parser.add_argument('--influxbucket', required=False, type=str,
+                        default='temperature', help='Influx bucket to store temperature')
+    parser.add_argument('--influxtoken', required=False, type=str,
+                        default='temperature', help='Influx bucket to store temperature')
+
     parser.add_argument('--loop', required=False, action='store_true',
                         default=False, help='Only excetue forever')
     parser.add_argument('--frequency', required=False, type=int,
@@ -56,27 +63,15 @@ def parse_args():
     return parser.parse_args()
 
 
-def parseTags(tags):
-    extratags = dict()
-    if not tags:
-        return dict()
-    for t in tags:
-        #        logging.info(t)
-        if not '=' in t:
-            logging.warn('error in tag syntax: {}'.format(t))
-            return {}
-        else:
-            f = t.split('=')
-            extratags[f[0]] = f[1]
-    # logging.info(PrettyLog(extratags))
-    return extratags
+def parse_tag(tag):
+    key, value = tag.split('=')
+    return key.strip(), value.strip()
 
 
 try:
     args = parse_args()
     args.sensor = sensor_args[args.sensor]
     logging.basicConfig(level=args.loglevel, format=FORMAT)
-    extratags = parseTags(args.tag)
     ip = 'No IP'
 
     if ni.ifaddresses('eth0') and ni.AF_INET in ni.ifaddresses('eth0'):
@@ -86,31 +81,40 @@ try:
 
     if not args.loglevel == logging.DEBUG and not args.json:
         logging.debug('Debug mode, not storing data to influxdb server.')
-        client = InfluxDBClient(host='localhost', database=args.influxdatabase)
+        # client = InfluxDBClient(host='localhost', database=args.influxdatabase)
+        client = InfluxDBClient(url=args.influxserver, token=args.influxtoken, org=args.influxorg)
+        write_api = client.write_api(write_options=SYNCHRONOUS)
     else:
         logging.debug('Debug mode, not storing data to influxdb server.')
     while True:
         humi, temp = Adafruit_DHT.read_retry(args.sensor, args.pin)
         logging.debug(
             'Temp: {:.1f}*C Humity: {:.1f}% IP: {} ExTags: {}'.format(temp, humi, ip, extratags))
-        json_body = [
-            {
-                "measurement": "temp",
-                "tags": {
-                    "host": socket.gethostname(),
-                    "ip": ip,
-                },
-                "fields": {
-                    "temp": temp,
-                    "humi": humi
-                }
-            }
-        ]
-        json_body[0]['fields'].update(extratags)
+
+        point = Point("environmental_measurement")
+        point = point.tag("ip", ip).tag("host", socket.gethostname())
+
+        # Add additional tags from command line arguments
+        if args.tags:
+            for tag in args.tags:
+                key, value = parse_tag(tag)
+                point = point.tag(key, value)
+
+        # Add fields
+        point = point.field("temperature", temp).field("humidity", humi)
+
+        point_dict = {
+            "measurement": point._name,
+            "tags": point._tags,
+            "fields": point._fields,
+            "time": point._time
+        }
+        # json_body[0]['fields'].update(extratags)
         if not args.loglevel == logging.DEBUG and not args.json:
-            client.write_points(json_body)
+            # client.write_points(json_body)
+            write_api.write(bucket=bucket, record=point)
         if args.json:
-            jsondata = json.dumps(json_body[0])
+            jsondata = json.dumps(point_dict)
             print(jsondata)
         if (not args.loop):
             break
