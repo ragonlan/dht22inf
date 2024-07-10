@@ -110,7 +110,7 @@ try:
         }
         if not args.loglevel == logging.DEBUG and not args.json:
             # client.write_points(json_body)
-            write_api.write(bucket=bucket, record=point)
+            write_api.write(bucket=args.bucket, record=point)
         if args.json:
             jsondata = json.dumps(point_dict)
             print(jsondata)
