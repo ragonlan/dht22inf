@@ -88,8 +88,6 @@ try:
         logging.debug('Debug mode, not storing data to influxdb server.')
     while True:
         humi, temp = Adafruit_DHT.read_retry(args.sensor, args.pin)
-        logging.debug(
-            'Temp: {:.1f}*C Humity: {:.1f}% IP: {} ExTags: {}'.format(temp, humi, ip, args.tags))
 
         point = Point("environmental_measurement")
         point = point.tag("ip", ip).tag("host", socket.gethostname())
@@ -99,7 +97,8 @@ try:
             for tag in args.tags:
                 key, value = parse_tag(tag)
                 point = point.tag(key, value)
-
+        logging.debug(
+            'Temp: {:.1f}*C Humity: {:.1f}% IP: {}'.format(temp, humi, ip))
         # Add fields
         point = point.field("temperature", temp).field("humidity", humi)
 
@@ -109,7 +108,6 @@ try:
             "fields": point._fields,
             "time": point._time
         }
-        # json_body[0]['fields'].update(extratags)
         if not args.loglevel == logging.DEBUG and not args.json:
             # client.write_points(json_body)
             write_api.write(bucket=bucket, record=point)
